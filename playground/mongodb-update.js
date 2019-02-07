@@ -42,7 +42,3 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', {useNewUrlParser: true}
         })
 
 })
-
-// users
-// Update the name
-// $inc to increement the age by one
