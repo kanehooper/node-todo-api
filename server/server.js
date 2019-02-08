@@ -1,63 +1,55 @@
-const mongoose = require('mongoose');
+console.clear();
 
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/TodoApp', {useNewUrlParser: true});
+const express = require('express');
+// What is body parser
+const bodyParser = require('body-parser');
 
-// Create a model
-// A model refers to the structure and layout of a database 
-// and how the data will be stored
-// The mongoose model tells it how to store the data
+// Desctructuring here to get directly at the properties
+let {mongoose} = require('./db/mongoose');
+const {Todo} = require('./models/todo');
+const {User} = require('./models/user');
 
-// Why is Todo capitalised
-// mongoose.model must return a constructor function
-// The model, models the document structure
-// Mongoose will create the collection by taking the model name, pluralising it and making it all lowercase
-var Todo = mongoose.model('Todo', {
-    // Properties of the model
-    text: {
-        // This is a String constructor
-        type: String
-    },
-    completed: {
-        type: Boolean
-    },
-    completeAt: {
-        type: Number
-    }
+// What happens when we call express as a method here?
+// express() function is a top-level function exported by the express module
+// A top level function is one associated with the global object, not a sub object
+// Creates an Express application
+// The app object has methods for:
+// Routing HTTP requests
+// Configuring middleware
+// Rendering HTML
+// Registering a template engine
+// It also has settings properties
+const app = express();
+
+// Need to understand this better
+app.use(bodyParser.json());
+
+// What is the post method
+// The post method sends data to the server to create/update a resource
+// What is a REST API - stateless, client-server protocol using HTTP
+//                    - treats server objects as resources that can be created or destroyed
+//                    - works based on HTTP methods
+// What are web APIs - a contract between a req and response specifies the request format
+// Representational - It sends a representation of the resource, such as HTML, the image data, JSON etc.
+// State - Each time we request a new resource within an app we get a new state
+// Trasfer - Coming from the server to the client
+app.post('/todos', (req, res) => {
+    var todo = new Todo({
+        text: req.body.text,
+        completed: req.body.completed
+    })
+    
+    todo.save()
+        .then((doc) => {
+            // This returns the completed doc to teh user
+            res.send(doc);
+        }, (err) => {
+            // Sends back the error
+            // Status returns the HTTP code
+            res.status(400).send(err);
+        })
 });
 
-// What is this?
-// This is creating a new instance of the Todo model to create a new document based
-// on this model
-// The argumnet is an object where we can specify the document properties
-
-var newTodo = new Todo({
-    text: 'Cook dinner',
-    completed: false
-});
-
-// This will save the instance of Todo to the database
-// This returns a promise, the success callback is passed the document that is saved
-newTodo.save()
-    .then((doc) => {
-        console.log('Saved todo', JSON.stringify(doc, undefined, 2));
-    }, (e) => {
-        console.log('Unable to save todo');
-    });
-
-// The _v is the version number for changes to the model over time
-
-// Challenge
-newTodo = new Todo({
-    text: 'Eat my shorts',
-    completed: true,
-    completeAt: 0
-});
-
-newTodo.save()
-    .then((doc) => {
-        console.log(JSON.stringify(doc, undefined, 2));
-    }, (err) => {
-        console.log(err);
-    });
-
+app.listen(3000, () => {
+    console.log('Started on port 3000');
+})
