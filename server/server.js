@@ -1,16 +1,23 @@
 console.clear();
 
+// Third party modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('Mongodb');
 
+// Internal modules
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
 
+// Create an Express app
 const app = express();
+
+// Express Middleware
 app.use(bodyParser.json());
 
+// Routes:
+// POST /todos route
 app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text,
@@ -25,6 +32,7 @@ app.post('/todos', (req, res) => {
         })
 });
 
+// GET /todos route
 app.get('/todos', (req, res) => {
     Todo.find().then((todos) => {
         res.send({todos});
@@ -33,35 +41,28 @@ app.get('/todos', (req, res) => {
     })
 });
 
-// GST /todos/12345
-// :id this creates an id variable on the request object
+// GET /todos/:id route
 app.get('/todos/:id', (req, res) => {
-    // the paramas property holds an object of paramaters sent through the route
-    // This id paramater can be set
     let id = req.params.id;
     
-    // Firstly check that the ObjectID is valid
     if (!ObjectID.isValid(id)) {
-        res.status(404).send({
+        return res.status(404).send({
             error: 'Not a valid ID'
         });
-    }
+    };
 
     Todo.findById(id)
         .then((todo) => {
             if (todo) {
-                // Wrap it in an object to be able to add customer properties later
                 res.send({todo});
             } else {
-                // Return a 404 as not found
                 res.status(404).send({
                     error: 'That ID does not exist'
                 });
             }
         }, (err) => {
-            //Return a 400 as an invalid request
-            // We don't want to return the error object to the client
             res.status(400).send({});
+            console.log(err);
         });
 
 });
@@ -70,6 +71,7 @@ app.listen(3000, () => {
     console.log('Started on port 3000');
 })
 
+// Export app for testing
 module.exports = {
     app
 }

@@ -1,13 +1,17 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 // Creating seed data to the database
 const todos = [{
+    // Create new object IDs
+    _id: new ObjectID(),
     text: 'First test todo'
 }, {
+    _id: new ObjectID(),
     text: 'Second test todo'
 }]
 
@@ -63,7 +67,7 @@ describe('POST /todos', () => {
     });
 });
 
-describe('Get /todos', () => {
+describe('GET /todos', () => {
     it('should get all todos', (done) => {
         request(app)
             .get('/todos')
@@ -73,15 +77,37 @@ describe('Get /todos', () => {
             })
             .end(done);
     });
+});
 
-    // it('should get a single todo by ID', (done) => {
-    //     request(app)
-    //         .get('/todos/5c5e3a0f1b5dec1eb2e3103e')
-    //         .expect(200)
-    //         .expect((res) => {
-    //             var todo = Todo.findById('5c5e3a0f1b5dec1eb2e3103e');
-    //             expect(res.body.text).toBe('First test todo')
-    //         })
-    //         .end(done);
-    // });
+describe('GET /todos/:id', () => {
+    it('should return a todo by ID', (done) => {
+        request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end(done);
+    });
+
+    it('should return 404 if todo not found', (done) => {
+        var id = new ObjectID().toHexString();
+        request(app)
+            .get(`/todos/${id}`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('That ID does not exist');
+            })
+            .end(done);
+    });
+
+    it('should return 404 for non-object ids', (done) => {
+        request(app)
+            .get('/todos/1234')
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('Not a valid ID');
+            })
+            .end(done);
+    });
 });
