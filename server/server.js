@@ -68,6 +68,36 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
+// DELETE /todos/:id route
+app.delete('/todos/:id', (req, res) => {
+    let id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send({
+            error: 'Not a valid ID'
+        });
+    };
+
+    Todo.findByIdAndDelete(id)
+        .then((todo) => {
+            if (todo) {
+                res.status(200).send({
+                    todo,
+                    status: 'Todo deleted'
+                });
+            } else {
+                res.status(404).send({
+                    error: 'Todo not found'
+                })
+            };
+        })
+        .catch((err) => {
+            res.status(400).send({
+                error: 'Invalid request'
+            });
+        });
+});
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 })
