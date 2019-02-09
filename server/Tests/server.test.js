@@ -115,14 +115,30 @@ describe('GET /todos/:id', () => {
 });
 
 describe('DELETE /todos/:id', () => {
-    it('should delete a record', (done) => {
+    it('should delete a document by id', (done) => {
+        let id = todos[0]._id.toHexString();
+
         request(app)
-            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .delete(`/todos/${id}`)
             .expect(200)
             .expect((res) => {
-                expect(res.body.todo.text).toBe(todos[0].text);
+                expect(res.body.todo._id).toBe(id);
+                expect(res.body.status).toBe('Todo deleted');
             })
-            .end(done);
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                Todo.findById(id)
+                    .then((todo) => {
+                        expect(todo).toBeNull();
+                        done();
+                    })
+                    .catch((err) => {
+                        done(err);
+                    });
+            });
     });
 
     it('should return a 404 for invalid record', (done) => {
