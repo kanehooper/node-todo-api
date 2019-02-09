@@ -3,7 +3,8 @@ console.clear();
 // Third party modules
 const express = require('express');
 const bodyParser = require('body-parser');
-const {ObjectID} = require('Mongodb');
+const {ObjectID} = require('mongodb');
+const _ = require('lodash');
 
 // Internal modules
 const {mongoose} = require('./db/mongoose');
@@ -72,12 +73,6 @@ app.get('/todos/:id', (req, res) => {
 app.delete('/todos/:id', (req, res) => {
     let id = req.params.id;
 
-    if (!ObjectID.isValid(id)) {
-        return res.status(404).send({
-            error: 'Not a valid ID'
-        });
-    };
-
     Todo.findByIdAndDelete(id)
         .then((todo) => {
             if (todo) {
@@ -96,6 +91,42 @@ app.delete('/todos/:id', (req, res) => {
                 error: 'Invalid request'
             });
         });
+});
+
+// PATCH /todos
+// Patch allows us to update a resource
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    // _.pick pulls off properties of req.body and adds them to the body variable
+    var body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send({
+            error: 'Not a valid ID'
+        });
+    };
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completeAt = new Date().getTime();
+    } else {
+        body.complete = false;
+        body.completeAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {
+        $set: body
+    },
+    {
+        new: true
+    }).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({todo});
+    }).catch((err) => {
+        res.status(400).send();
+    })
 });
 
 app.listen(port, () => {
