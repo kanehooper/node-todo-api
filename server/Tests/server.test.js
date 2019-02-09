@@ -15,6 +15,7 @@ const todos = [{
     text: 'Second test todo'
 }]
 
+// Set up the test database
 beforeEach((done) => {
     Todo.remove({})
         .then(() => {
@@ -23,6 +24,7 @@ beforeEach((done) => {
         .then(() => done());
 });
 
+// Route tests
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
         let text = 'Test todo text';
