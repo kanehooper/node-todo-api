@@ -5,10 +5,12 @@
 
 let id = '5c5c14a38ffae4553a6c95d9';
 
+// Add to MongoDB section
 if (!ObjectID.isValid(id)) {
     console.log('Invalid ID');
 }
 
+// Add to Mongoose find
 User.find({
     _id: '5c5c14a38ffae4553a6c95d9'
 }).then((user) => {
@@ -18,6 +20,7 @@ User.find({
     console.log(user);
 })
 
+// Add to Mongoose findByID
  User.findById(id)
     .then((user) => {
         if (!user) {

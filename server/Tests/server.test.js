@@ -73,4 +73,15 @@ describe('Get /todos', () => {
             })
             .end(done);
     });
+
+    // it('should get a single todo by ID', (done) => {
+    //     request(app)
+    //         .get('/todos/5c5e3a0f1b5dec1eb2e3103e')
+    //         .expect(200)
+    //         .expect((res) => {
+    //             var todo = Todo.findById('5c5e3a0f1b5dec1eb2e3103e');
+    //             expect(res.body.text).toBe('First test todo')
+    //         })
+    //         .end(done);
+    // });
 });
