@@ -9,10 +9,13 @@ const {Todo} = require('./../models/todo');
 const todos = [{
     // Create new object IDs
     _id: new ObjectID(),
-    text: 'First test todo'
+    text: 'First test todo',
+    completed: true
 }, {
     _id: new ObjectID(),
-    text: 'Second test todo'
+    text: 'Second test todo',
+    completed: false,
+    completedAt: null
 }]
 
 // Set up the test database
@@ -159,6 +162,65 @@ describe('DELETE /todos/:id', () => {
             .expect(404)
             .expect((res) => {
                 expect(res.body.error).toBe('Todo not found');
+            })
+            .end(done);
+    });
+});
+
+describe('PATCH /todos/:id', () => {
+    // it updates a document
+    it('should update the document', (done) => {
+        let id = todos[1]._id.toHexString();
+        let body = {
+            text: 'Updated by test',
+            completed: true
+        }
+
+        request(app)
+            .patch(`/todos/${id}`)
+            .send(body)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(body.text);
+                expect(res.body.todo.completed).toBe(body.completed);
+                expect(res.body.status).toBe('Todo updated');
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                Todo.find()
+                    .then((todos) => {
+                        expect(todos.length).toBe(2);
+                        done();
+                    })
+                    .catch((err) => {
+                        done(err);
+                    });
+            });
+    });
+
+    // it returns a 404 for invalid object id
+    it('should return 404 for an invalid object id', (done) => {
+        request(app)
+            .patch(`/todos/123abc`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('Not a valid ID');
+            })
+            .end(done);
+    });
+
+    // it returns a 404 for document not found
+    it('should return 404 for document not found', (done) => {
+        let id = new ObjectID().toHexString();
+
+        request(app)
+            .patch(`/todos/${id}`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('No Todo found');
             })
             .end(done);
     });

@@ -73,6 +73,12 @@ app.get('/todos/:id', (req, res) => {
 app.delete('/todos/:id', (req, res) => {
     let id = req.params.id;
 
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send({
+            error: 'Not a valid ID'
+        });
+    };
+
     Todo.findByIdAndDelete(id)
         .then((todo) => {
             if (todo) {
@@ -98,6 +104,7 @@ app.delete('/todos/:id', (req, res) => {
 app.patch('/todos/:id', (req, res) => {
     var id = req.params.id;
     // _.pick pulls off properties of req.body and adds them to the body variable
+    // req.body holds the data from the body sent with the PATCH request
     var body = _.pick(req.body, ['text', 'completed']);
 
     if (!ObjectID.isValid(id)) {
@@ -106,6 +113,7 @@ app.patch('/todos/:id', (req, res) => {
         });
     };
 
+    // _.siBoolean checks if a value is a boolean and returns true or false
     if (_.isBoolean(body.completed) && body.completed) {
         body.completeAt = new Date().getTime();
     } else {
@@ -113,17 +121,23 @@ app.patch('/todos/:id', (req, res) => {
         body.completeAt = null;
     }
 
+    // This is the Mongoose update method
     Todo.findByIdAndUpdate(id, {
         $set: body
     },
     {
         new: true
     }).then((todo) => {
-        if (!todo) {
-            return res.status(404).send();
+        if (todo) {
+            res.status(200).send({
+                todo,
+                status: 'Todo updated'
+            });
+        } else {
+            res.status(404).send({
+                error: "No Todo found"
+            })
         }
-
-        res.send({todo});
     }).catch((err) => {
         res.status(400).send();
     })
